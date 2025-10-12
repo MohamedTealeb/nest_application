@@ -1,29 +1,29 @@
-import { Body, Controller, HttpCode, Post, Res } from "@nestjs/common";
-
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  UsePipes,
+  ValidationPipe,
+} from "@nestjs/common";
 import { AuthenticationService } from "./auth.service";
-import type { Response } from "express";
-import { SignupBodyDto } from "./dto/signup.dto";
-import { CustomValidationPipe } from "src/common/pipes/validation.custom.pipe";
-import { signupValidation } from "./autth.validation";
+import { LoginBodyDto, SignupBodyDto } from "./dto/signup.dto";
 
-
-@Controller()
+@Controller("auth")
 export class AuthenticationController {
-constructor(private readonly AuthenticationService:AuthenticationService ){}
+  constructor(private readonly authenticationService: AuthenticationService) {}
 
-    @Post("/auth/signup")
-    signup(@Body(new CustomValidationPipe(signupValidation)) body:SignupBodyDto):{message:string,data:{userId:number}} { 
-        
-        const id:number=this.AuthenticationService.signup(body)
-        return {message:'done',data:{userId:id}};
-    }
+  // @UsePipes(new ValidationPipe({ stopAtFirstError: true, whitelist: true, forbidNonWhitelisted: true }))
+  @Post("signup")
+  async signup(@Body() body: SignupBodyDto): Promise<{ message: string }> {
+    console.log({ body });
+    await this.authenticationService.signup(body);
+    return { message: "done" };
+  }
 
-    @HttpCode(200)
-    @Post("auth/login")
-    login(){
-        return "login";
-    }
-
-
-
+  @HttpCode(200)
+  @Post("login")
+  async login(@Body() body: LoginBodyDto) {
+    return await this.authenticationService.login(body);
+  }
 }

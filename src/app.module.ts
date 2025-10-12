@@ -7,6 +7,7 @@ import { resolve } from 'path';
 import { UserModule } from './user/user.module';
 import { CatrgoryModule } from './catrgory/catrgory.module';
 import { ProductModule } from './product/product.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ProductModule } from './product/product.module';
       envFilePath: resolve("./config/.env"),
       isGlobal: true
     }),
+    MongooseModule.forRoot(process.env.MONGO_URI as string ,{serverSelectionTimeoutMS:5000}),
     AuthModule,
     UserModule,
     CatrgoryModule,
