@@ -25,3 +25,11 @@ export class SignupQueryDto {
     @IsString()
     flag: string;
 }
+export class ConfirmEmailDto {
+ 
+    @IsEmail()
+    email: string;
+    @IsString()
+    @IsNotEmpty()
+    otp: string;
+}

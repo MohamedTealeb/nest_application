@@ -16,7 +16,7 @@ import { TokenModel } from "src/DB/model/token.model";
     TokenModel,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'default-secret',
-      signOptions: { expiresIn: (process.env.JWT_EXPIRES_IN || '1h') as unknown as number },
+      signOptions: { expiresIn: (process.env.JWT_EXPIRES_IN) as unknown as number },
     }),
   ],
   exports: [AuthenticationService],

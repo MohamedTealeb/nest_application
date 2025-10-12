@@ -50,6 +50,11 @@ export class User {
    @Prop({type:Date,required:false})
    changeCredentials:Date;
 
+   @Prop({type:String,required:false})
+   confrimEmailOtp?:string;
+   @Prop({type:Date,required:false})
+   confirmEmailAt:Date;
+
 }
 const userSchema=SchemaFactory.createForClass(User)
 userSchema.pre('save',async function(next){

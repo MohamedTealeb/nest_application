@@ -20,8 +20,8 @@ export class TokenSecurity {
     try {
       return this.jwtService.verify(token, {
         secret: isRefresh 
-          ? (process.env.JWT_REFRESH_SECRET || 'default-refresh-secret')
-          : (process.env.JWT_SECRET || 'default-secret')
+          ? (process.env.JWT_REFRESH_SECRET )
+          : (process.env.JWT_SECRET)
       });
     } catch (e) {
       return null;
