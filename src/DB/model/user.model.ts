@@ -34,6 +34,7 @@ export class User {
     })
     email:string
 
+
     @Prop({type:String,required:function(this:User){
         return this.provider===ProviderEnum.GOOGLE ? false : true
     }})
@@ -54,6 +55,14 @@ export class User {
    confrimEmailOtp?:string;
    @Prop({type:Date,required:false})
    confirmEmailAt:Date;
+
+   @Prop({type:String,required:false})
+   resetPasswordOtp?:string;
+   @Prop({type:Date,required:false})
+   resetPasswordAt?:Date;
+
+   @Prop({type:String,required:false})
+   profileImage?:string;
 
 }
 const userSchema=SchemaFactory.createForClass(User)

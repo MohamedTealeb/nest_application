@@ -1,5 +1,6 @@
 import {  IsEmail, IsNotEmpty, IsString, IsStrongPassword, Length, MinLength, registerDecorator, Validate, ValidateIf, ValidationArguments, ValidationOptions, ValidatorConstraint, ValidatorConstraintInterface } from "class-validator";
 import { IsMatch } from "src/common/decoretors/match.custom.decoretor";
+import { Body } from '@nestjs/common';
 
 export class LoginBodyDto {
       @IsEmail()
@@ -32,4 +33,29 @@ export class ConfirmEmailDto {
     @IsString()
     @IsNotEmpty()
     otp: string;
+}
+export class ForgetPasswordDto {
+  @IsEmail()
+  email: string;
+}
+
+export class ResetPasswordDto {
+  @IsEmail()
+  email: string;
+  @IsString()
+  @IsNotEmpty()
+  otp: string;
+  @IsStrongPassword()
+  newPassword: string;
+  @ValidateIf((data: ResetPasswordDto) => {
+    return Boolean(data.newPassword)
+  })
+  @IsMatch(['newPassword'], { message: 'Passwords do not match' })
+  confirmNewPassword: string;
+}
+
+export class GoogleSignupDto {
+  @IsString()
+  @IsNotEmpty()
+  idToken: string;
 }

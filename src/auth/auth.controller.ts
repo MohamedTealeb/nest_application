@@ -8,7 +8,7 @@ import {
   ValidationPipe,
 } from "@nestjs/common";
 import { AuthenticationService } from "./auth.service";
-import { ConfirmEmailDto, LoginBodyDto, SignupBodyDto } from "./dto/signup.dto";
+import { ConfirmEmailDto, ForgetPasswordDto, GoogleSignupDto, LoginBodyDto, ResetPasswordDto, SignupBodyDto } from "./dto/signup.dto";
 
 @Controller("auth")
 export class AuthenticationController {
@@ -36,4 +36,24 @@ export class AuthenticationController {
   async resendOtp(@Body() body: { email: string }) {
     return await this.authenticationService.resendOtp(body.email);
   }
+
+  @Patch("forget-password")
+  async forgetPassword(@Body() body: ForgetPasswordDto) {
+    return await this.authenticationService.forgetPassword(body);
+  }
+
+  @Patch("reset-password")
+  async resetPassword(@Body() body: ResetPasswordDto) {
+    return await this.authenticationService.resetPassword(body);
+  }
+  @Post("signup-google")
+  async signupGoogle(@Body() body: GoogleSignupDto) {
+    return await this.authenticationService.signupGoogle(body);
+  }
+
+  @Post("login-google")
+  async loginGoogle(@Body() body: GoogleSignupDto) {
+    return await this.authenticationService.LoginWithGmail(body);
+  }
+
 }
