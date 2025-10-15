@@ -10,6 +10,8 @@ import { verifyEmail } from 'src/common/utils/email/verify.template';
 import { resetPasswordEmail } from 'src/common/utils/email/reset-password.template';
 import { OAuth2Client, TokenPayload } from "google-auth-library";
 import { ProviderEnum } from "src/common/enums/user.enum";
+import { OtpRepository } from "src/DB/repository/otp.repository";
+import { otpEnum } from "src/common/enums/otp.enum";
 
 
 
@@ -19,7 +21,8 @@ export class AuthenticationService {
   
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly tokenSecurity: TokenSecurity
+    private readonly tokenSecurity: TokenSecurity,
+    private readonly otpRepository: OtpRepository
   ) {}
   private async verifyGmailAccount(idToken:string):Promise<TokenPayload>{
     const client=new OAuth2Client();
@@ -55,24 +58,23 @@ async signup(data:SignupBodyDto):Promise<{message: string}>{
       confirmEmailAt:new Date()
     },
  })
+
  
  if(!user){
     throw new BadGatewayException("fail to signup this acc ")
  }
+ 
+ const otpRecord=await this.otpRepository.create({
+  data:{
+      code:otp,
+      expiredAt:new Date(Date.now()+15*60*1000),
+      createdBy:user._id.toString(),
+      type:otpEnum.ConfirmEmail
+  }
+ })
 
  
- try {
-   await sendEmail({
-     to: email,
-     subject: "Verify Your Email - OTP Code",
-     html: verifyEmail({ 
-       otp: otp, 
-       title: "Email Verification" 
-     })
-   });
- } catch (emailError) {
-   console.error('Failed to send verification email:', emailError);
- }
+
  
  return {
    message: "Account created successfully. Please check your email for verification code."
@@ -250,7 +252,7 @@ async signup(data:SignupBodyDto):Promise<{message: string}>{
     if (!user) {
       throw new ConflictException('User not found');
     }
-    
+     
     if (!user.resetPasswordOtp) {
       throw new ConflictException('No password reset request found for this email');
     }

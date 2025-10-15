@@ -1,4 +1,4 @@
-export const verifyEmail = ({ otp, title }: { otp: number; title: string }): string => {
+export const verifyEmail = ({ otp, title }: { otp: string; title: string }): string => {
     return `<!DOCTYPE html>
     <html lang="en">
     <head>

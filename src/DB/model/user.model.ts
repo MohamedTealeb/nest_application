@@ -2,6 +2,7 @@ import { MongooseModule, Prop, Schema, SchemaFactory, Virtual } from "@nestjs/mo
 import { HydratedDocument } from "mongoose";
 import { GenderEnum, ProviderEnum } from "src/common/enums/user.enum";
 import { generateHash } from "src/common/utils/security/hash.security";
+import { OtpDocument } from "./otp.model";
 
 
 @Schema({
@@ -64,8 +65,16 @@ export class User {
    @Prop({type:String,required:false})
    profileImage?:string;
 
+   @Virtual()
+   otp:OtpDocument[]
+
 }
 const userSchema=SchemaFactory.createForClass(User)
+userSchema.virtual("otp",{
+    ref:"Otp",
+    localField:"_id",
+    foreignField:"createdBy",
+})
 userSchema.pre('save',async function(next){
 if(this.isModified('password')) {
     this.password=await generateHash(this.password)
