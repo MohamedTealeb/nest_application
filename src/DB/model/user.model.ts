@@ -1,6 +1,6 @@
 import { MongooseModule, Prop, Schema, SchemaFactory, Virtual } from "@nestjs/mongoose";
 import { HydratedDocument } from "mongoose";
-import { GenderEnum, ProviderEnum } from "src/common/enums/user.enum";
+import { GenderEnum, LanguageEnum, ProviderEnum } from "src/common/enums/user.enum";
 import { generateHash } from "src/common/utils/security/hash.security";
 import { OtpDocument } from "./otp.model";
 
@@ -64,6 +64,8 @@ export class User {
 
    @Prop({type:String,required:false})
    profileImage?:string;
+   @Prop({type:String,enum:LanguageEnum,default:LanguageEnum.EN})
+   preferredLanguage:LanguageEnum
 
    @Virtual()
    otp:OtpDocument[]

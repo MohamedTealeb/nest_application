@@ -1,12 +1,26 @@
-import { Module } from "@nestjs/common";
-import { UseController } from "./user.controller";
+import {  MiddlewareConsumer, Module } from "@nestjs/common";
+import { UserController } from "./user.controller";
 import { UserService } from "./user.service";
+import { PreAuth } from "src/common/middleware/authentication.middleware";
+import { UserModel } from "src/DB/model/user.model";
+import { TokenModel } from "src/DB/model/token.model";
 
 
 @Module({
-    imports:[],
+    imports:[UserModel,TokenModel],
     exports:[],
-    controllers:[UseController],
-    providers:[UserService],
+    controllers:[UserController],
+    providers:[UserService,],
 })
-export class UserModule {}
+export class UserModule {
+    configure(consumer:MiddlewareConsumer){
+
+
+
+        consumer.apply(PreAuth).forRoutes(UserController)
+
+    }
+    // configure(consumer:MiddlewareConsumer){
+    //     consumer.apply(setDefaultLanguage,authenticationMiddleware).forRoutes({path:'user/profile',method:RequestMethod.GET})
+    // }
+}

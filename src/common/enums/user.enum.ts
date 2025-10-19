@@ -15,3 +15,12 @@ male="male",
 
 
 }
+export enum RoleEnum {
+  ADMIN="ADMIN",
+  USER="USER",
+}
+
+export enum LanguageEnum{
+   EN='EN',
+    AR='AR',
+}
