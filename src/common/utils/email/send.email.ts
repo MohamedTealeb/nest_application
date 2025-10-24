@@ -17,6 +17,9 @@ const transporter:Transporter<SMTPTransport.SentMessageInfo,SMTPTransport.Option
         user:process.env.EMAIL as string,
         pass:process.env.EMAIL_PASSWORD as string
     },
+    connectionTimeout: 60000, // 60 seconds
+    greetingTimeout: 30000,   // 30 seconds
+    socketTimeout: 60000,     // 60 seconds
 });
  await transporter.sendMail({
     ...data,

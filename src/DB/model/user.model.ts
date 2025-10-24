@@ -1,6 +1,6 @@
 import { MongooseModule, Prop, Schema, SchemaFactory, Virtual } from "@nestjs/mongoose";
 import { HydratedDocument } from "mongoose";
-import { GenderEnum, LanguageEnum, ProviderEnum } from "src/common/enums/user.enum";
+import { GenderEnum, LanguageEnum, ProviderEnum, RoleEnum } from "src/common/enums/user.enum";
 import { generateHash } from "src/common/utils/security/hash.security";
 import { OtpDocument } from "./otp.model";
 
@@ -18,6 +18,7 @@ export class User {
     lastName: string;
     @Virtual({
         get:function(this:User){
+            
             return `${this.firstName} ${this.lastName}`
         },
         set:function(value:string){
@@ -27,6 +28,8 @@ export class User {
     })
     username:string
 
+   @Prop({type:String,enum:RoleEnum,default:RoleEnum.USER})
+     role:string
 
     @Prop({
         type:String,
@@ -52,15 +55,6 @@ export class User {
    @Prop({type:Date,required:false})
    changeCredentials:Date;
 
-   @Prop({type:String,required:false})
-   confrimEmailOtp?:string;
-   @Prop({type:Date,required:false})
-   confirmEmailAt:Date;
-
-   @Prop({type:String,required:false})
-   resetPasswordOtp?:string;
-   @Prop({type:Date,required:false})
-   resetPasswordAt?:Date;
 
    @Prop({type:String,required:false})
    profileImage?:string;

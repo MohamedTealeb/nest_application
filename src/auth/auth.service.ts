@@ -9,9 +9,13 @@ import { sendEmail } from 'src/common/utils/email/send.email';
 import { verifyEmail } from 'src/common/utils/email/verify.template';
 import { resetPasswordEmail } from 'src/common/utils/email/reset-password.template';
 import { OAuth2Client, TokenPayload } from "google-auth-library";
-import { ProviderEnum } from "src/common/enums/user.enum";
+import { ProviderEnum, RoleEnum } from "src/common/enums/user.enum";
 import { OtpRepository } from "src/DB/repository/otp.repository";
 import { otpEnum } from "src/common/enums/otp.enum";
+import { InjectModel } from "@nestjs/mongoose";
+import { User } from "src/common/decoretors/credential.decorator";
+import { Model } from "mongoose";
+import { UserDocument } from "src/DB/model/user.model";
 
 
 
@@ -20,6 +24,7 @@ export class AuthenticationService {
   private users: IUser[] = [];
   
   constructor(
+    
     private readonly userRepository: UserRepository,
     private readonly tokenSecurity: TokenSecurity,
     private readonly otpRepository: OtpRepository
@@ -53,9 +58,7 @@ async signup(data:SignupBodyDto):Promise<{message: string}>{
     data:{
       username,
       email,
-      password,
-      confrimEmailOtp:encryptedOtp,
-      confirmEmailAt:new Date()
+      password
     },
  })
 
@@ -90,6 +93,7 @@ async signup(data:SignupBodyDto):Promise<{message: string}>{
         id: number;
         username: string;
         email: string;
+        role: string;
       }
     } 
   }> {
@@ -101,7 +105,7 @@ async signup(data:SignupBodyDto):Promise<{message: string}>{
     }
     
     if (!(await compareHash(password, user.password))) {
-      throw new ConflictException('invalid login data');
+      throw new ConflictException('fail to find matching password');
     }
     
     // Check if email is confirmed
@@ -129,6 +133,7 @@ async signup(data:SignupBodyDto):Promise<{message: string}>{
         user: {
           id: user.id,
           username: user.username,
+          role: user.role,
           email: user.email
         }
       }
@@ -143,33 +148,52 @@ async signup(data:SignupBodyDto):Promise<{message: string}>{
       throw new ConflictException('User not found');
     }
     
-    if (!user.confrimEmailOtp) {
+    // Find the OTP record for this user and type
+    const otpRecord = await this.otpRepository.findOne({
+      filter: {
+        createdBy: user._id,
+        type: otpEnum.ConfirmEmail
+      }
+    });
+    
+    if (!otpRecord) {
       throw new ConflictException('No OTP found for this email');
     }
     
-    const isValidOtp = await compareHash(otp, user.confrimEmailOtp);
+    // Check if OTP has expired
+    if (new Date() > otpRecord.expiredAt) {
+      throw new ConflictException('OTP code has expired');
+    }
+    
+    const isValidOtp = await compareHash(otp, otpRecord.code);
     if (!isValidOtp) {
       throw new ConflictException('Invalid OTP code');
     }
     
-    const otpExpiry = new Date(user.confirmEmailAt.getTime() + 15 * 60 * 1000);
-    if (new Date() > otpExpiry) {
-      throw new ConflictException('OTP code has expired');
-    }
-    
+    // Update user email confirmation
     await this.userRepository.updateOne({ 
       filter: { email }, 
       update: { 
-        confirmEmail: new Date(),
-    
+        confirmEmail: new Date()
       } 
+    });
+    
+    // Delete the used OTP
+    await this.otpRepository.deleteMany({
+      createdBy: user._id,
+      type: otpEnum.ConfirmEmail
     });
     
     return { message: "Email confirmed successfully" };
   }
 
   async resendOtp(email: string): Promise<{ message: string }> {
-    const user = await this.userRepository.findOne({ filter: { email } });
+         
+    const user = await this.userRepository.findOne({ filter: { email },
+    options:{
+      populate:[{path:"otp",match:{type:otpEnum.ConfirmEmail}}]
+    }
+    });
     
     if (!user) {
       throw new ConflictException('User not found');
@@ -179,30 +203,24 @@ async signup(data:SignupBodyDto):Promise<{message: string}>{
       throw new ConflictException('Email already confirmed');
     }
     
-    const otp = generateNumberOtp();
-    
-    const encryptedOtp = await generateHash(otp.toString());
-    
-    await this.userRepository.updateOne({
-      filter: { email },
-      update: {
-        confrimEmailOtp: encryptedOtp,
-        confirmEmailAt: new Date()
-      }
+    // Delete existing OTP for this user and type
+    await this.otpRepository.deleteMany({
+      createdBy: user._id,
+      type: otpEnum.ConfirmEmail
     });
     
-    try {
-      await sendEmail({
-        to: email,
-        subject: "New Verification Code - OTP",
-        html: verifyEmail({ 
-          otp: otp, 
-          title: "New Email Verification Code" 
-        })
-      });
-    } catch (emailError) {
-      console.error('Failed to resend verification email:', emailError);
-    }
+    const otp = generateNumberOtp();
+    
+    // Create new OTP using the repository
+    // Email will be sent automatically by the OTP model's post-save hook
+    await this.otpRepository.create({
+      data: {
+        code: otp.toString(),
+        expiredAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
+        createdBy: user._id.toString(),
+        type: otpEnum.ConfirmEmail
+      }
+    });
     
     return { message: "New verification code sent to your email" };
   }
@@ -218,31 +236,31 @@ async signup(data:SignupBodyDto):Promise<{message: string}>{
       throw new ConflictException('Please confirm your email first');
     }
 
-    const otp = generateNumberOtp();
-    const encryptedOtp = await generateHash(otp.toString());
-
-    await this.userRepository.updateOne({
-      filter: { email },
-      update: {
-        resetPasswordOtp: encryptedOtp,
-        resetPasswordAt: new Date()
-      }
-    });
-
     try {
-      await sendEmail({
-        to: email,
-        subject: "Password Reset - OTP Code",
-        html: resetPasswordEmail({ 
-          otp: otp, 
-          title: "Password Reset Request" 
-        })
+      // Delete existing reset password OTP for this user
+      await this.otpRepository.deleteMany({
+        createdBy: user._id,
+        type: otpEnum.ResetPassword
       });
-    } catch (emailError) {
-      console.error('Failed to send password reset email:', emailError);
-    }
 
-    return { message: "Password reset code sent to your email" };
+      const otp = generateNumberOtp();
+
+      // Create new OTP using the repository
+      // Email will be sent automatically by the OTP model's post-save hook
+      await this.otpRepository.create({
+        data: {
+          code: otp.toString(),
+          expiredAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes from now
+          createdBy: user._id.toString(),
+          type: otpEnum.ResetPassword
+        }
+      });
+
+      return { message: "Password reset code sent to your email" };
+    } catch (error) {
+      console.error('Error in forgetPassword:', error);
+      throw new ConflictException('Failed to process password reset request');
+    }
   }
 
   async resetPassword(data: ResetPasswordDto): Promise<{ message: string }> {
@@ -252,19 +270,27 @@ async signup(data:SignupBodyDto):Promise<{message: string}>{
     if (!user) {
       throw new ConflictException('User not found');
     }
-     
-    if (!user.resetPasswordOtp) {
+    
+    // Find the OTP record for this user and type
+    const otpRecord = await this.otpRepository.findOne({
+      filter: {
+        createdBy: user._id,
+        type: otpEnum.ResetPassword
+      }
+    });
+    
+    if (!otpRecord) {
       throw new ConflictException('No password reset request found for this email');
     }
     
-    const isValidOtp = await compareHash(otp, user.resetPasswordOtp);
-    if (!isValidOtp) {
-      throw new ConflictException('Invalid OTP code');
+    // Check if OTP has expired
+    if (new Date() > otpRecord.expiredAt) {
+      throw new ConflictException('OTP code has expired');
     }
     
-    const otpExpiry = new Date(user.resetPasswordAt!.getTime() + 15 * 60 * 1000);
-    if (new Date() > otpExpiry) {
-      throw new ConflictException('OTP code has expired');
+    const isValidOtp = await compareHash(otp, otpRecord.code);
+    if (!isValidOtp) {
+      throw new ConflictException('Invalid OTP code');
     }
     
     const isSamePassword = await compareHash(newPassword, user.password);
@@ -272,14 +298,19 @@ async signup(data:SignupBodyDto):Promise<{message: string}>{
       throw new ConflictException('New password must be different from current password');
     }
     
+    // Update password and clear OTP
     await this.userRepository.updateOne({ 
       filter: { email }, 
       update: { 
         password: newPassword,
-        resetPasswordOtp: undefined,
-        resetPasswordAt: undefined,
         changeCredentials: new Date()
       } 
+    });
+    
+    // Delete the used OTP
+    await this.otpRepository.deleteMany({
+      createdBy: user._id,
+      type: otpEnum.ResetPassword
     });
     
     return { message: "Password reset successfully" };

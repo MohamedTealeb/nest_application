@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { OtpDocument as TDocument ,Otp } from "../model/otp.model";
+import { Otp, OtpDocument, OtpModel } from "../model/otp.model";
 import { Model } from "mongoose";
 import { InjectModel } from "@nestjs/mongoose";
 import { DataBaseRepository } from "./database.repository";
@@ -8,11 +8,13 @@ import { DataBaseRepository } from "./database.repository";
 
 @Injectable()
 
-export class OtpRepository extends DataBaseRepository<TDocument>{
-constructor(@InjectModel (Otp.name)  readonly model:Model<TDocument>,){
+export class OtpRepository extends DataBaseRepository<Otp, OtpDocument>{
+constructor(@InjectModel (Otp.name)  protected override readonly model:Model<OtpDocument>){
     super(model)
 }
 
-
+async deleteMany(filter: any) {
+    return this.model.deleteMany(filter);
+}
 
 }

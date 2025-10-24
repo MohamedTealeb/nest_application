@@ -28,7 +28,7 @@ export class AuthenticationController {
   }
 
   @Patch("confirm-email")
-  async confirmEmail(@Body() body: ConfirmEmailDto) {
+  async confirmEmail(@Body() body: ConfirmEmailDto):Promise<{ message: string }> {
     return await this.authenticationService.confirmEmail(body);
   }
 

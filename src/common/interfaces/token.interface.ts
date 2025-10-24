@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 
 export interface IToken{
-    jwy:string,
-    expiresIn:string,
+    jti:string,
+    expiresIn:number,
     userId:Types.ObjectId
 }

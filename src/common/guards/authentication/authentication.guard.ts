@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
+import tr from 'zod/v4/locales/tr.js';
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
@@ -28,6 +29,6 @@ export class AuthenticationGuard implements CanActivate {
     default:
     break;
   }
-    return false;
+    return true;
   }
 }

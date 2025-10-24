@@ -1,6 +1,6 @@
 import { CreateOptions, FlattenMaps, HydratedDocument, Model, MongooseUpdateQueryOptions, ProjectionType, QueryOptions, RootFilterQuery, Types, UpdateQuery, UpdateWriteOpResult } from "mongoose";
 export type Lean<T>=FlattenMaps<T>
-export abstract class DataBaseRepository<TDocument>{
+export abstract class DataBaseRepository<TRawDocument,TDocument=HydratedDocument<TRawDocument>>{
 
 protected constructor(protected model:Model<TDocument>){}
 
@@ -9,8 +9,8 @@ async findOne({
     select,
     options
   }:{
-    filter?:RootFilterQuery<TDocument>,
-    select?:ProjectionType<TDocument>|null,
+    filter?:RootFilterQuery<TRawDocument>,
+    select?:ProjectionType<TRawDocument>|null,
     options?:QueryOptions<TDocument>|null
   }):Promise<HydratedDocument<TDocument>|null>{
     let query = this.model.findOne(filter ?? {}, null, options ?? undefined).select(select||"");
@@ -54,8 +54,8 @@ async find({
   select,
   options,
 }: {
-  filter?: RootFilterQuery<TDocument>;
-  select?: ProjectionType<TDocument> | null;
+  filter?: RootFilterQuery<TRawDocument>;
+  select?: ProjectionType<TRawDocument> | null;
   options?: QueryOptions<TDocument> | null;
 }): Promise<HydratedDocument<TDocument>[]> {
   return this.model
@@ -84,7 +84,7 @@ async findOneAndUpdate({
     update,
     options={new:true},
 }:{
-    filter:RootFilterQuery<TDocument>;
+    filter:RootFilterQuery<TRawDocument>;
     update?:UpdateQuery<TDocument>;
     options?:QueryOptions<TDocument>|null;
 }):Promise<HydratedDocument<TDocument>|null>{
@@ -98,7 +98,7 @@ async findOneAndUpdate({
         data,
         options,
     }:{
-        data:Partial<TDocument>;
+        data:Partial<TRawDocument>;
     
         options?:CreateOptions|undefined
     }):Promise<HydratedDocument<TDocument>> {
@@ -127,7 +127,7 @@ filter,
 update,
     options
 }:{
-    filter:RootFilterQuery<TDocument>;
+    filter:RootFilterQuery<TRawDocument>;
     update:UpdateQuery<TDocument>;
     options?:MongooseUpdateQueryOptions<TDocument>
 

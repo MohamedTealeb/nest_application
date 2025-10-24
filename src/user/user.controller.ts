@@ -1,4 +1,4 @@
-import { Controller, Get, Headers, Req, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Controller, Get, Headers, Patch, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { UserService } from './user.service';
 import { IUser } from "src/common";
 import  type{ Request } from "express";
@@ -13,6 +13,7 @@ import type { UserDocument } from "src/DB/model/user.model";
 import { User } from "src/common/decoretors/credential.decorator";
 import { PreferredLanguageInterceptor } from "src/common/interceptors/applyLanguage.interceptors";
 import { delay, Observable, of } from "rxjs";
+import { FileInterceptor } from "@nestjs/platform-express";
 
 
 
@@ -35,5 +36,15 @@ profile( @Headers() header:any,   @User() user:UserDocument ):Observable<any>{
 allUsers():{message:string,data:{users:IUser[]}}{
     const users:IUser[]=this.userService.allUsers()
     return {message:'done',data:{users}}
+}
+
+@UseInterceptors(FileInterceptor('profileImage'))
+@Auth([RoleEnum.USER])
+@Patch('profileImage')
+profileImage(
+    @UploadedFile() file:Express.Multer.File,
+){
+    console.log(file);
+    return {message:'done'}
 }
 }
