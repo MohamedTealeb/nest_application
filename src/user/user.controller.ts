@@ -1,4 +1,4 @@
-import { Controller, Get, Headers, Patch, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Controller, Get, Headers, Patch, Req, SetMetadata, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { UserService } from './user.service';
 import { IUser } from "src/common";
 import  type{ Request } from "express";
@@ -14,21 +14,25 @@ import { User } from "src/common/decoretors/credential.decorator";
 import { PreferredLanguageInterceptor } from "src/common/interceptors/applyLanguage.interceptors";
 import { delay, Observable, of } from "rxjs";
 import { FileInterceptor } from "@nestjs/platform-express";
+import type { IAuthRequest } from "src/common/interfaces/token.interface";
 
 
 
 
 @Controller('user')
 export class UserController{
-constructor(private readonly userService:UserService){}
+    constructor(private readonly userService:UserService){}
+    
+    
+    // // @UseInterceptors(PreferredLanguageInterceptor)
+    // @SetMetadata('tokenType',TokenEnum.ACCESS)
+    // @UseGuards(AuthenticationGuard,AuthorizationGuard)
+    @UseInterceptors(PreferredLanguageInterceptor)
 
-
-@UseInterceptors(PreferredLanguageInterceptor)
-@Auth([RoleEnum.ADMIN,RoleEnum.USER])
-
+    @Auth([RoleEnum.USER,  RoleEnum.ADMIN],TokenEnum.ACCESS)
 @Get('profile')
-profile( @Headers() header:any,   @User() user:UserDocument ):Observable<any>{
-    return of([{message:'done'}]).pipe(delay(10000))
+profile( @Req() req:IAuthRequest,   @User() user:any ):{message:string}{
+    return {message:'done'}
 }
 
 

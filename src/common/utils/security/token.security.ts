@@ -18,11 +18,11 @@ export class TokenSecurity {
 
   verifyToken(token: string, isRefresh = false): any {
     try {
-      return this.jwtService.verify(token, {
-        secret: isRefresh 
-          ? (process.env.JWT_REFRESH_SECRET )
-          : (process.env.JWT_SECRET)
-      });
+      const secret = isRefresh 
+        ? (process.env.JWT_REFRESH_SECRET || 'default-refresh-secret')
+        : (process.env.JWT_SECRET || 'default-secret');
+      
+      return this.jwtService.verify(token, { secret });
     } catch (e) {
       return null;
     }

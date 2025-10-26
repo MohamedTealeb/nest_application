@@ -114,15 +114,21 @@ async signup(data:SignupBodyDto):Promise<{message: string}>{
     }
     
     const accessToken = this.tokenSecurity.generateAccessToken({
-      sub: user.id,
-      email: user.email,
-      username: user.username
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role
+      }
     });
     
     const refreshToken = this.tokenSecurity.generateRefreshToken({
-      sub: user.id,
-      email: user.email,
-      username: user.username
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role
+      }
     });
     
     return {
@@ -381,15 +387,21 @@ async signup(data:SignupBodyDto):Promise<{message: string}>{
     }
     
     const accessToken = this.tokenSecurity.generateAccessToken({
-      sub: user.id,
-      email: user.email,
-      username: user.username
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.firstName + ' ' + user.lastName || '',
+        role: user.role
+      }
     });
     
     const refreshToken = this.tokenSecurity.generateRefreshToken({
-      sub: user.id,
-      email: user.email,
-      username: user.username
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.firstName + ' ' + user.lastName || '',
+        role: user.role
+      }
     });
     
     return {
@@ -400,6 +412,69 @@ async signup(data:SignupBodyDto):Promise<{message: string}>{
         user: {
           id: user.id,
           username: user.username,
+          email: user.email
+        }
+      }
+    };
+  }
+
+  async refreshToken(refreshToken: string): Promise<{ 
+    message: string; 
+    data: { 
+      accessToken: string;
+      refreshToken: string;
+      user: {
+        id: number;
+        username: string;
+        email: string;
+        role: string;
+      }
+    } 
+  }> {
+    // Verify the refresh token
+    const decoded = this.tokenSecurity.verifyToken(refreshToken, true);
+    
+    if (!decoded) {
+      throw new ConflictException('Invalid refresh token');
+    }
+    
+    // Find the user
+    const user = await this.userRepository.findOne({ 
+      filter: { email: decoded.user.email } 
+    });
+    
+    if (!user) {
+      throw new ConflictException('User not found');
+    }
+    
+    // Generate new tokens
+    const newAccessToken = this.tokenSecurity.generateAccessToken({
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role
+      }
+    });
+    
+    const newRefreshToken = this.tokenSecurity.generateRefreshToken({
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role
+      }
+    });
+    
+    return {
+      message: "Tokens refreshed successfully",
+      data: { 
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.role,
           email: user.email
         }
       }

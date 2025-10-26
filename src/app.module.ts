@@ -19,10 +19,13 @@ import { MongooseModule } from '@nestjs/mongoose';
     AuthModule,
     UserModule,
     CatrgoryModule,
-    ProductModule
+    ProductModule,
+    
+
   ],
-  controllers: [AppController],
+  controllers: [AppController ],
   providers: [AppService ],
+  
 
 
   

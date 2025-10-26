@@ -21,9 +21,9 @@ export class AuthorizationGuard implements CanActivate {
     let role: RoleEnum = RoleEnum.USER;
     switch(context.getType()){
       case 'http':
-        role=context.switchToHttp().getRequest().data.user.role
-
-      break;
+        const req = context.switchToHttp().getRequest();
+        role = req.decode?.user?.role || RoleEnum.USER;
+        break;
     } 
 
 

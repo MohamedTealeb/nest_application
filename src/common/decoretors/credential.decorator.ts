@@ -9,6 +9,6 @@ export const    User=createParamDecorator(
             case 'http':
                 req=context.switchToHttp().getRequest();
                 break;}
-        return req.credentials.user
+        return req.credentials?.user || req.credentials
     }
 )
