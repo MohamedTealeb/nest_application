@@ -5,10 +5,15 @@ import { TokenSecurity } from 'src/common/utils/security/token.security';
 import { Token } from 'src/DB/model/token.model';
 import tr from 'zod/v4/locales/tr.js';
 import { Reflector } from '@nestjs/core';
+import { UserRepository } from 'src/DB/repository/user.repository';
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
-  constructor(private readonly tokenSecurity: TokenSecurity,private readonly reflector: Reflector) {}
+  constructor(
+    private readonly tokenSecurity: TokenSecurity,
+    private readonly reflector: Reflector,
+    private readonly userRepository: UserRepository
+  ) {}
  async canActivate(
     context: ExecutionContext,
   ): Promise<boolean> {
@@ -46,15 +51,31 @@ export class AuthenticationGuard implements CanActivate {
    
    // Verify the token (check validity and expiration)
    const isRefresh = tokenType === TokenEnum.REFRESH;
-   const decoded = this.tokenSecurity.verifyToken(token, isRefresh);
+   const secret = isRefresh ? (process.env.JWT_REFRESH_SECRET || 'default-refresh-secret') : (process.env.JWT_SECRET || 'default-secret');
+   const decoded = await this.tokenSecurity.verifyToken({
+     token,
+     secret
+   });
    
    if (!decoded) {
      return false;
    }
    
+   // Extract user ID from the decoded token
+   const userId = (decoded as any)?.sub;
+   if (!userId) {
+     return false;
+   }
+   
+   // Fetch the user from the database
+   const user = await this.userRepository.findOne({ filter: { _id: userId } });
+   if (!user) {
+     return false;
+   }
+   
    // Set credentials on request
    req.credentials = {
-     user: decoded?.user || decoded,
+     user: user,
      decode: decoded
    }
    

@@ -1,4 +1,4 @@
-import { Controller, Get, Headers, Patch, Req, SetMetadata, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Controller, Get, Headers, ParseFilePipe, Patch, Req, SetMetadata, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { UserService } from './user.service';
 import { IUser } from "src/common";
 import  type{ Request } from "express";
@@ -13,8 +13,15 @@ import type { UserDocument } from "src/DB/model/user.model";
 import { User } from "src/common/decoretors/credential.decorator";
 import { PreferredLanguageInterceptor } from "src/common/interceptors/applyLanguage.interceptors";
 import { delay, Observable, of } from "rxjs";
-import { FileInterceptor } from "@nestjs/platform-express";
+import { FileFieldsInterceptor, FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import type { IAuthRequest } from "src/common/interfaces/token.interface";
+import { localFileUpload } from "src/common/utils/multer/local.multer";
+import type { IMulterFile } from "src/common/interfaces/multer.interface";
+import { Validate } from 'class-validator';
+import { FileValidation } from "src/common/utils/multer/validation.multer";
+import { cloudFileUpload } from "src/common/utils/multer/cloud.multer";
+import { StorageEnum } from "src/common/enums/multer.enums";
+import { succesResponse } from "src/common/utils/response";
 
 
 
@@ -36,19 +43,43 @@ profile( @Req() req:IAuthRequest,   @User() user:any ):{message:string}{
 }
 
 
-@Get()
-allUsers():{message:string,data:{users:IUser[]}}{
-    const users:IUser[]=this.userService.allUsers()
-    return {message:'done',data:{users}}
-}
-
-@UseInterceptors(FileInterceptor('profileImage'))
+@UseInterceptors(FileInterceptor('profileImage',cloudFileUpload({storageApproach:StorageEnum.disk,vaildation:FileValidation.image})))
 @Auth([RoleEnum.USER])
 @Patch('profileImage')
-profileImage(
-    @UploadedFile() file:Express.Multer.File,
+async profileImage(
+    @User() user:UserDocument,
+    @UploadedFile(ParseFilePipe) file:Express.Multer.File,
+
 ){
-    console.log(file);
-    return {message:'done'}
+
+    const url=await this.userService.profileImage(file,user)
+    return succesResponse<{proflie:IUser}>({data:{proflie:user}})
+}
+
+
+@UseInterceptors(FilesInterceptor('coverImage',2,localFileUpload({folder:'users',vaildation:FileValidation.image,fileSize:2})))
+@Auth([RoleEnum.USER])
+@Patch('cover-image')
+coverImage(
+    @UploadedFiles(new ParseFilePipe ({
+        fileIsRequired:true,
+    })) files:Array<IMulterFile>,
+){
+    return {message:'done',files}
+}
+
+@UseInterceptors(FileFieldsInterceptor([{name:'profileImage',maxCount:1},{name:'coverImage',maxCount:2},],cloudFileUpload({
+    storageApproach:StorageEnum.disk,
+    vaildation:FileValidation.image,
+    fileSize:2
+})))
+@Auth([RoleEnum.USER])
+@Patch('image')
+Image(
+    @UploadedFiles(new ParseFilePipe ({
+        fileIsRequired:true,
+    })) files:{profileImage:IMulterFile,coverImage:Array<IMulterFile>},
+){
+    return {message:'done',files:{profileImage:files.profileImage,coverImage:files.coverImage}}
 }
 }

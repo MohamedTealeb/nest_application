@@ -8,26 +8,30 @@ import { UserModule } from './user/user.module';
 import { CatrgoryModule } from './catrgory/catrgory.module';
 import { ProductModule } from './product/product.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { BrandModule } from './brand/brand.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: resolve("./config/.env"),
-      isGlobal: true
+      isGlobal: true,
+      
     }),
-    MongooseModule.forRoot(process.env.MONGO_URI as string ,{serverSelectionTimeoutMS:5000}),
+    MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/application' ,{serverSelectionTimeoutMS:5000}),
     AuthModule,
     UserModule,
+    BrandModule,
     CatrgoryModule,
     ProductModule,
     
-
+    
+    
   ],
   controllers: [AppController ],
   providers: [AppService ],
   
-
-
+  
+  
   
 })
 export class AppModule {}

@@ -1,13 +1,17 @@
 import { MongooseModule, Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument, Types } from "mongoose";
+import { IUser } from "src/common";
 import { otpEnum } from "src/common/enums/otp.enum";
+import { IOtp } from "src/common/interfaces/otp.interface";
 import { emailEvent } from "src/common/utils/email/email.event";
 import { generateHash } from "src/common/utils/security/hash.security";
 
 
 @Schema({ timestamps: true})
 
-export class Otp {
+export class Otp implements IOtp {
+    _id?: Types.ObjectId;
+    
      @Prop({type:String,required:true})
     code:string;
 
@@ -15,10 +19,10 @@ export class Otp {
     expiredAt:Date;
 
     @Prop({type:Types.ObjectId,ref:"User",required:true})
-    createdBy:string;
+    createdBy:Types.ObjectId;
 
     @Prop({type:String,enum:otpEnum,required:true})
-    type:string
+    type:otpEnum
 }
 export const OtpSchema = SchemaFactory.createForClass(Otp);
 

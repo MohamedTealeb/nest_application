@@ -1,8 +1,9 @@
 import { MongooseModule, Prop, Schema, SchemaFactory, Virtual } from "@nestjs/mongoose";
-import { HydratedDocument } from "mongoose";
+import { HydratedDocument, Types } from "mongoose";
 import { GenderEnum, LanguageEnum, ProviderEnum, RoleEnum } from "src/common/enums/user.enum";
 import { generateHash } from "src/common/utils/security/hash.security";
 import { OtpDocument } from "./otp.model";
+import { IUser } from "src/common";
 
 
 @Schema({
@@ -11,7 +12,9 @@ import { OtpDocument } from "./otp.model";
     toObject:{virtuals:true},
     toJSON:{virtuals:true}
 })
-export class User {
+export class User implements IUser {
+    _id?: Types.ObjectId;
+    
     @Prop({type:String,minlength:2,maxlength:26,trim:true})
     firstName: string;
     @Prop({type:String,minlength:2,maxlength:26,trim:true})
@@ -29,7 +32,7 @@ export class User {
     username:string
 
    @Prop({type:String,enum:RoleEnum,default:RoleEnum.USER})
-     role:string
+     role:RoleEnum
 
     @Prop({
         type:String,
@@ -44,25 +47,38 @@ export class User {
     }})
     password:string;
 
+    @Prop({type:String,required:false})
+    confirmPassword:string;
+
     @Prop({type:String,enum:ProviderEnum,default:ProviderEnum.SYSTEM})
    provider:ProviderEnum; 
 
     @Prop({type:String,enum:GenderEnum,default:GenderEnum.male})
    gender:GenderEnum;
   @Prop({type:Date ,required:false})
-   confirmEmail:Date
+   confirmedAt?:Date
+
+  @Prop({type:Date,required:false})
+   confirmEmail?:Date
+
+  @Prop({type:Date,required:false})
+   changeCredentials?:Date
 
    @Prop({type:Date,required:false})
-   changeCredentials:Date;
+   createdAt:Date;
+
+   @Prop({type:Date,required:false})
+   updatedAt:Date;
 
 
-   @Prop({type:String,required:false})
-   profileImage?:string;
    @Prop({type:String,enum:LanguageEnum,default:LanguageEnum.EN})
    preferredLanguage:LanguageEnum
 
    @Virtual()
    otp:OtpDocument[]
+
+   @Prop({type:String,required:false})
+   profilePicture?:string;
 
 }
 const userSchema=SchemaFactory.createForClass(User)

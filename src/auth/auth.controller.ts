@@ -9,6 +9,7 @@ import {
 } from "@nestjs/common";
 import { AuthenticationService } from "./auth.service";
 import { ConfirmEmailDto, ForgetPasswordDto, GoogleSignupDto, LoginBodyDto, ResetPasswordDto, SignupBodyDto } from "./dto/signup.dto";
+import { IUser } from "src/common";
 
 @Controller("auth")
 export class AuthenticationController {
@@ -23,8 +24,15 @@ export class AuthenticationController {
 
   @HttpCode(200)
   @Post("login")
-  async login(@Body() body: LoginBodyDto) {
-    return await this.authenticationService.login(body);
+  async login(@Body() body: LoginBodyDto): Promise<{ message: string; data: { credentials: { accessToken: string; refreshToken: string }; user:IUser } }> {
+    const data = await this.authenticationService.login(body);
+    return {
+      message: data.message,
+      data: {
+        credentials: data.data.credentials,
+        user: data.data.user as IUser
+      }
+    }
   }
 
   @Patch("confirm-email")

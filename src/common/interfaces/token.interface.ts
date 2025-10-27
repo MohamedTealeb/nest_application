@@ -3,11 +3,15 @@ import { JwtPayload } from "jsonwebtoken";
 import { Types } from "mongoose";
 import { UserDocument } from "src/DB/model/user.model";
 import { TokenEnum } from "../enums/token.enums";
+import { IUser } from "./user.interfaces";
 
 export interface IToken{
+    _id?:Types.ObjectId,
     jti:string,
-    expiresIn:number,
-    userId:Types.ObjectId
+    expiresAt:Date,
+    createdBy:Types.ObjectId | IUser,
+    createdAt?:Date,
+    updatedAt?:Date,
 }
 export interface ICredentials{ 
     user:UserDocument,

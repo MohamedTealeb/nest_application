@@ -26,7 +26,7 @@ export class AuthenticationMiddleware implements NestMiddleware {
 
       const token = authHeader.split(' ')[1];
 
-      const decoded = this.tokenSecurity.decodeToken(token);
+      const decoded = await this.tokenSecurity.decodeToken({ token });
       if (!decoded) {
         throw new BadRequestException('Token is invalid');
       }
@@ -34,7 +34,7 @@ export class AuthenticationMiddleware implements NestMiddleware {
       console.log('Decoded token:', JSON.stringify(decoded, null, 2));
 
       (req as any).credentials = {
-        user: decoded.user || decoded,
+        user: (decoded as any)?.user || decoded,
         decode: decoded,
       };
       

@@ -11,6 +11,8 @@ import type  {Request} from 'express';
 import {randomUUID} from 'node:crypto'
 import { TokenSecurity } from "src/common/utils/security/token.security";
 import { AuthenticationGuard } from "src/common/guards/authentication/authentication.guard";
+import { S3Service } from "src/common/utils/security/s3.services";
+import { UserRepository } from "src/DB/repository/user.repository";
 
 
 @Module({
@@ -35,9 +37,9 @@ import { AuthenticationGuard } from "src/common/guards/authentication/authentica
             })
         })
     ],
-    exports:[],
+    exports:[UserRepository],
     controllers:[UserController],
-    providers:[UserService,TokenSecurity,AuthenticationMiddleware,AuthenticationGuard],
+    providers:[UserService,UserRepository,TokenSecurity,AuthenticationMiddleware,AuthenticationGuard,S3Service],
 })
 export class UserModule {
     configure(consumer:MiddlewareConsumer){

@@ -1,34 +1,37 @@
 import { Injectable } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
+import { JwtService, JwtSignOptions } from "@nestjs/jwt";
+import { JwtPayload } from "jsonwebtoken";
 
 @Injectable()
 export class TokenSecurity {
   constructor(private readonly jwtService: JwtService) {}
 
-  generateAccessToken(payload: any): string {
-    return this.jwtService.sign(payload);
+ generateToken=async({
+  payload,
+  options={
+    secret:process.env.JWT_SECRET || 'default-secret',
+    expiresIn:Number(process.env.JWT_EXPIRES_IN) || 3600,
   }
+ }: {
+    payload:object,
+    options?:JwtSignOptions
+ }):Promise<string>=>{
+  return await this.jwtService.signAsync(payload, options);
+ }
 
-  generateRefreshToken(payload: any): string {
-    const jwt = require('jsonwebtoken');
-    return jwt.sign(payload, process.env.JWT_REFRESH_SECRET || 'default-refresh-secret', {
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d'
-    });
-  }
 
-  verifyToken(token: string, isRefresh = false): any {
+  verifyToken=async({token, secret=process.env.JWT_SECRET || 'default-secret'}:{
+    token:string,
+    secret?:string
+  }): Promise<JwtPayload | null> => {
     try {
-      const secret = isRefresh 
-        ? (process.env.JWT_REFRESH_SECRET || 'default-refresh-secret')
-        : (process.env.JWT_SECRET || 'default-secret');
-      
-      return this.jwtService.verify(token, { secret });
+      return this.jwtService.verify(token, { secret: secret || process.env.JWT_SECRET || 'default-secret' });
     } catch (e) {
       return null;
     }
   }
 
-  decodeToken(token: string): any {
+  decodeToken=async({token}:{token:string}): Promise<JwtPayload | null> => {
     return this.jwtService.decode(token);
   }
 }
