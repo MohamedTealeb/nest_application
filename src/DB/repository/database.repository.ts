@@ -88,9 +88,19 @@ async findOneAndUpdate({
     update?:UpdateQuery<TDocument>;
     options?:QueryOptions<TDocument>|null;
 }):Promise<HydratedDocument<TDocument>|null>{
-    return this.model.findOneAndUpdate(filter,{
-        ...update,$inc:{__v:1}
-    },options)
+    if (Array.isArray(update)) {
+        return this.model.findOneAndUpdate(filter, update as any, options);
+    }
+    return this.model.findOneAndUpdate(filter, { ...(update || {}), $inc: { __v: 1 } } as any, options);
+}
+async findOneAndDelete({
+    filter
+   
+}:{
+    filter:RootFilterQuery<TRawDocument>;
+   
+}):Promise<HydratedDocument<TDocument>|null>{
+    return this.model.findOneAndDelete(filter)
 }
 
 

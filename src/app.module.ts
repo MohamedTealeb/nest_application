@@ -5,10 +5,10 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { resolve } from 'path';
 import { UserModule } from './user/user.module';
-import { CatrgoryModule } from './catrgory/catrgory.module';
 import { ProductModule } from './product/product.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { BrandModule } from './brand/brand.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -21,8 +21,8 @@ import { BrandModule } from './brand/brand.module';
     AuthModule,
     UserModule,
     BrandModule,
-    CatrgoryModule,
     ProductModule,
+    CategoryModule,
     
     
     

@@ -4,14 +4,17 @@ import { IUser } from "./user.interfaces";
 
 export interface IBrand {
 
-    _id?:Types.ObjectId,
-    name:string,
-    slogan:string,
-    image:string,
-    createdBy:Types.ObjectId | IUser,
-    createdAt?:Date,
-    updatedAt?:Date,
-    updatedBy?:Types.ObjectId | IUser,
+    _id?:Types.ObjectId
+    name:string
+    slogan:string
+    image:string
+    createdBy:Types.ObjectId | IUser
+    createdAt?:Date
+    updatedAt?:Date
+    updatedBy?:Types.ObjectId | IUser
+    freezedAt?:Date
+    restoredAt?:Date
+
 
 
 }

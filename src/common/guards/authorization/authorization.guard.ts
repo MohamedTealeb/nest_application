@@ -16,17 +16,21 @@ export class AuthorizationGuard implements CanActivate {
       context.getClass(),
     ]) ?? [];
 
+    if (accessRoles.length === 0) {
+      return true;
+    }
 
-
-    let role: RoleEnum = RoleEnum.USER;
+    let role: RoleEnum | undefined;
     switch(context.getType()){
       case 'http':
         const req = context.switchToHttp().getRequest();
-        role = req.decode?.user?.role || RoleEnum.USER;
+        role = (req.credentials?.user?.role as RoleEnum | undefined);
         break;
     } 
 
-
+    if (!role) {
+      return false;
+    }
 
     return accessRoles.includes(role)
   }
