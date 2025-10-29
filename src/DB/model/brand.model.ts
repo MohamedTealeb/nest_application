@@ -24,6 +24,8 @@ export class Brand implements IBrand {
     createdBy:Types.ObjectId | IUser
     @Prop({type:Types.ObjectId,ref:"User"})
     updatedBy:Types.ObjectId | IUser
+    @Prop({type:Types.ObjectId,ref:"Category"})
+    category?: Types.ObjectId;
     @Prop({type:Date})
     freezedAt?: Date 
     @Prop({type:Date})
@@ -60,5 +62,12 @@ if(query.paranoId===false){
 }
 
   next()
+})
+// virtual populate: products under this brand
+brandSchema.virtual('products',{
+  ref: 'Product',
+  localField: '_id',
+  foreignField: 'brand',
+  justOne: false,
 })
 export const BrandModel=MongooseModule.forFeature([{name:Brand.name,schema:brandSchema}])

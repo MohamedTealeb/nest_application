@@ -9,6 +9,7 @@ export interface IBrand {
     slogan:string
     image:string
     createdBy:Types.ObjectId | IUser
+    category?: Types.ObjectId
     createdAt?:Date
     updatedAt?:Date
     updatedBy?:Types.ObjectId | IUser

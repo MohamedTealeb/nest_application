@@ -29,24 +29,24 @@ async paginte({
     options?:QueryOptions<TDocument>|undefined,
     page?:number|"all",
     size?:number,
-}):Promise<{decsCount?: number, limit?: number, pages?: number, currentPage?: number, resault: HydratedDocument<TDocument>[]}>{ 
+}):Promise<{docsCount?: number, limit?: number, pages?: number, currentPage?: number, result: HydratedDocument<TDocument>[]}>{ 
 
-let decsCount:number|undefined=undefined
+let docsCount:number|undefined=undefined
 let pages:number|undefined=undefined
 if(page!="all"){
     pages=Math.floor(!page||page<1?1:page)
 options.limit=Math.floor(size<1||!size?5:size)
 options.skip=Math.floor((pages-1)*options.limit)
-decsCount=await this.model.countDocuments(filter)
-pages=Math.ceil(decsCount/options.limit)
+docsCount=await this.model.countDocuments(filter)
+pages=Math.ceil(docsCount/options.limit)
 }
-const resault=await this.model.find(filter,select,options)
+const result=await this.model.find(filter,select,options)
 return {
-    decsCount: decsCount || 0,
+    docsCount: docsCount || 0,
     limit: options.limit || 0,
     pages: pages || 0,
     currentPage: typeof page === 'number' ? Math.floor(page<1?1:page) : 1,
-    resault
+    result
 }}
    
 async find({
@@ -102,6 +102,12 @@ async findOneAndDelete({
 }):Promise<HydratedDocument<TDocument>|null>{
     return this.model.findOneAndDelete(filter)
 }
+
+  async deleteMany(filter: RootFilterQuery<TRawDocument>): Promise<number> {
+    const res = await this.model.deleteMany(filter as any);
+    // @ts-ignore
+    return res?.deletedCount ?? 0;
+  }
 
 
     async  create({

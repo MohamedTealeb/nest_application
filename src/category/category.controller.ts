@@ -13,9 +13,11 @@ import { endpoint } from './category.authorization.module';
 import { localFileUpload } from 'src/common/utils/multer/local.multer';
 import type { IMulterFile } from 'src/common/interfaces/multer.interface';
 import { CategoryService } from './category.service';
-import { CreateBrandDto } from 'src/brand/dto/create-brand.dto';
-import { BrandResponse } from 'src/brand/entities/brand.entity';
+
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { SearchDto } from 'src/common/dtos/search.dto';
+import { GetAllResponse } from 'src/common/entities/search.entity';
+
 
 @UsePipes(new ValidationPipe({whitelist:true ,forbidNonWhitelisted:true}))
 @Controller('category')
@@ -40,14 +42,23 @@ export class CategoryController {
   }
 
   @Get()
- async findAll(@Query()  query:GetAllDto) {
-   const result = await this.categoryService.findAll(query);
-    return succesResponse({data:result})
-  }
+ async findAll(@Query()  query:SearchDto):Promise<IResponse<GetAllResponse<CategoryResponse>>> {
+  const result = await this.categoryService.findAll(query);
+  const mapped: GetAllResponse<CategoryResponse> = {
+    result: {
+      docsCount: (result as any).docsCount || 0,
+      limit: (result as any).limit || 0,
+      pages: (result as any).pages || 0,
+      currentPage: (result as any).currentPage || 1,
+      result: ((result as any).result || []).map((doc: any) => ({ category: doc })),
+    },
+  };
+   return succesResponse<GetAllResponse<CategoryResponse>>({data: mapped})
+ }
 @Auth(endpoint.create)
   @Get('/archive')
 async findAllArchive(
-  @Query()  query:GetAllDto,
+  @Query()  query:SearchDto,
 ) {
   const result = await this.categoryService.findAll(query,true);
   return succesResponse({data:result})

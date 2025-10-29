@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { GetAllDto, UpdateCategoryDto } from './dto/update-category.dto';
+import {  UpdateCategoryDto } from './dto/update-category.dto';
 import { UserDocument } from 'src/DB/model/user.model';
 import { CategoryDocument } from 'src/DB/model/category.model';
 import { Types } from 'mongoose';
@@ -8,11 +8,13 @@ import { IMulterFile } from 'src/common/interfaces/multer.interface';
 import { CategoryRepository } from 'src/DB/repository/category.repository';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { BrandRepository } from 'src/DB/repository/brand.repository';
+import { ProductRepository } from 'src/DB/repository/product.repository';
 import { randomUUID } from 'crypto';
+import { SearchDto } from 'src/common/dtos/search.dto';
 
 @Injectable()
 export class CategoryService {
-  constructor(private readonly categoryRepository: CategoryRepository ,private readonly brandRepository: BrandRepository){}
+  constructor(private readonly categoryRepository: CategoryRepository ,private readonly brandRepository: BrandRepository, private readonly productRepository: ProductRepository){}
   async create(createCategoryDto: CreateCategoryDto,file:IMulterFile,user:UserDocument):Promise<CategoryDocument> {
     const{name}=createCategoryDto;
     const checkCategory=await this.categoryRepository.findOne({filter:{name,paranoId:false}});
@@ -58,7 +60,7 @@ export class CategoryService {
     return category;
   }
 
- async findAll(data:GetAllDto,archive:boolean=false) {
+ async findAll(data:SearchDto,archive:boolean=false) {
   const{page,size,search}=data;
     const result=await this.categoryRepository.paginte({
       filter:{
@@ -202,7 +204,14 @@ return category;
     if(!category){
       throw new BadRequestException('Failed to remove category');
     }
-    
+    // cascade: delete brands linked to this category and products by category/brand
+    const brandIds: Types.ObjectId[] = Array.isArray((category as any).brands) ? (category as any).brands as Types.ObjectId[] : [];
+    if (brandIds.length){
+      await this.brandRepository.deleteMany({_id: { $in: brandIds } } as any);
+      await this.productRepository.deleteMany({ $or: [ { brand: { $in: brandIds } }, { category: categoryId } ] } as any);
+    } else {
+      await this.productRepository.deleteMany({ category: categoryId } as any);
+    }
     return "Done";
        
       }

@@ -16,6 +16,8 @@ import { localFileUpload } from 'src/common/utils/multer/local.multer';
 import type { IMulterFile } from 'src/common/interfaces/multer.interface';
 import { BrandDocument } from 'src/DB/model/brand.model';
 import { Lean } from 'src/DB/repository/database.repository';
+import { SearchDto } from 'src/common/dtos/search.dto';
+import { GetAllResponse } from 'src/common/entities/search.entity';
 
 @UsePipes(new ValidationPipe({whitelist:true ,forbidNonWhitelisted:true}))
 @Controller('brand')
@@ -40,14 +42,23 @@ export class BrandController {
   }
 
   @Get()
- async findAll(@Query()  query:GetAllDto) {
+ async findAll(@Query()  query:SearchDto):Promise<IResponse<GetAllResponse<BrandResponse>>> {
    const result = await this.brandService.findAll(query);
-    return succesResponse({data:result})
+   const mapped: GetAllResponse<BrandResponse> = {
+    result: {
+      docsCount: (result as any).docsCount || 0,
+      limit: (result as any).limit || 0,
+      pages: (result as any).pages || 0,
+      currentPage: (result as any).currentPage || 1,
+      result: ((result as any).result || []).map((doc: any) => ({ brand: doc })),
+    },
+  };
+   return succesResponse<GetAllResponse<BrandResponse>>({data: mapped})
   }
 @Auth(endpoint.create)
   @Get('/archive')
 async findAllArchive(
-  @Query()  query:GetAllDto,
+  @Query()  query:SearchDto,
 ) {
   const result = await this.brandService.findAll(query,true);
   return succesResponse({data:result})

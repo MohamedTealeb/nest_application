@@ -6,6 +6,8 @@ import slugify from "slugify";
 import { IUser } from "src/common";
 import { IBrand } from "src/common/interfaces/brand.interface";
 import { ICategory } from "src/common/interfaces/category.interface";
+import { Brand } from "./brand.model";
+import { Product } from "./product.model";
 
 
 
@@ -35,7 +37,7 @@ export class Category implements ICategory {
 
     @Prop({type:String,required:true})
     assetFolderId:string
-    @Prop({type:Types.ObjectId,ref:"Brand"})
+    @Prop({type:[Types.ObjectId],ref:"Brand"})
     brands?: Types.ObjectId[] | IBrand[];
 
 }
@@ -70,4 +72,18 @@ if(query.paranoId===false){
 
   next()
 })
+// virtual populate: products under this category
+categorySchema.virtual('products', {
+  ref: Product.name,
+  localField: '_id',
+  foreignField: 'category',
+  justOne: false,
+});
+// virtual populate: brands referenced by this category.brands
+categorySchema.virtual('brandsInfo', {
+  ref: Brand.name,
+  localField: 'brands',
+  foreignField: '_id',
+  justOne: false,
+});
 export const CategoryModel=MongooseModule.forFeature([{name:Category.name,schema:categorySchema}])

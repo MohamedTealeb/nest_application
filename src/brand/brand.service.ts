@@ -7,6 +7,7 @@ import { BrandDocument } from 'src/DB/model/brand.model';
 import { Types } from 'mongoose';
 import { Lean } from 'src/DB/repository/database.repository';
 import { IMulterFile } from 'src/common/interfaces/multer.interface';
+import { SearchDto } from 'src/common/dtos/search.dto';
 
 @Injectable()
 export class BrandService {
@@ -35,7 +36,7 @@ export class BrandService {
     return brand;
   }
 
- async findAll(data:GetAllDto,archive:boolean=false) {
+ async findAll(data:SearchDto,archive:boolean=false) {
   const{page,size,search}=data;
     const result=await this.brandRepository.paginte({
       filter:{

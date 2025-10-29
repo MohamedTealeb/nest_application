@@ -13,8 +13,10 @@ constructor(@InjectModel (Otp.name)  protected override readonly model:Model<Otp
     super(model)
 }
 
-async deleteMany(filter: any) {
-    return this.model.deleteMany(filter);
+async deleteMany(filter: any): Promise<number> {
+    const res = await this.model.deleteMany(filter as any);
+    // @ts-ignore
+    return res?.deletedCount ?? 0;
 }
 
 }
