@@ -4,6 +4,7 @@ import { GenderEnum, LanguageEnum, ProviderEnum, RoleEnum } from "src/common/enu
 import { generateHash } from "src/common/utils/security/hash.security";
 import { OtpDocument } from "./otp.model";
 import { IUser } from "src/common";
+import { IProduct } from "src/common/interfaces/product.interface";
 
 
 @Schema({
@@ -79,6 +80,10 @@ export class User implements IUser {
 
    @Prop({type:String,required:false})
    profilePicture?:string;
+
+
+@Prop({type:[{type:Types.ObjectId,ref:"Product"}]})
+   wishlist?: Types.ObjectId[] 
 
 }
 const userSchema=SchemaFactory.createForClass(User)

@@ -2,25 +2,30 @@ import {  Injectable } from "@nestjs/common";
 import { IUser } from "src/common";
 import { RoleEnum } from "src/common/enums/user.enum";
 import { S3Service } from "src/common/utils/security/s3.services";
-import { UserDocument, User } from "src/DB/model/user.model";
+import type { UserDocument } from "src/DB/model/user.model";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
+import { UserRepository } from "src/DB/repository/user.repository";
+import { Auth } from "src/common/decoretors/auth.decoretors";
+import { User } from "src/common/decoretors/credential.decorator";
 
 
 @Injectable()
 export class UserService {
     constructor(
         private readonly s3Service:S3Service,
-        @InjectModel(User.name) private readonly userModel:Model<UserDocument>
+        private readonly userRepository:UserRepository
     ){}
 
 
+async profile(user:UserDocument){
+    const userDocument=await this.userRepository.findOne({filter:{_id:user._id},options:{populate:{path:"wishlist",select:{_id:1,name:1,price:1,image:1,slug:1,category:1,brand:1,originalPrice:1,discountPercent:1,salePrice:1}}},select:{password:0,resetPasswordOtp:0,confirmEmailOtp:0}})
+    return userDocument
+}
 async    profileImage(file:Express.Multer.File,user:any):Promise<string>{
-        // Extract user ID from JWT token - for regular login tokens, ID is in 'sub' field
         const userId = user.sub || user.id || user._id || user.userId;
         
-        // Fetch the actual user document from database using the user ID from token
-        const userDocument = await this.userModel.findById(userId);
+        const userDocument = await this.userRepository.findOne({filter:{_id:userId}});
         if (!userDocument) {
             throw new Error('User not found');
         }

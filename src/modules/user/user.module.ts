@@ -37,7 +37,7 @@ import { UserRepository } from "src/DB/repository/user.repository";
             })
         })
     ],
-    exports:[UserRepository],
+    exports:[UserModel, UserRepository,TokenSecurity],
     controllers:[UserController],
     providers:[UserService,UserRepository,TokenSecurity,AuthenticationMiddleware,AuthenticationGuard,S3Service],
 })

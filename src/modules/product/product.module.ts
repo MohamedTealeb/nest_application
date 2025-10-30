@@ -11,7 +11,7 @@ import { CategoryModel } from 'src/DB/model/category.model';
 import { TokenSecurity } from 'src/common/utils/security/token.security';
 import { AuthenticationGuard } from 'src/common/guards/authentication/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization/authorization.guard';
-import { UserModule } from 'src/user/user.module';
+import { UserModule } from 'src/modules/user/user.module';
 
 @Module({
   imports: [

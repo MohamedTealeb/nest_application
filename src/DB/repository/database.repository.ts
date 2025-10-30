@@ -1,4 +1,4 @@
-import { CreateOptions, FlattenMaps, HydratedDocument, Model, MongooseUpdateQueryOptions, ProjectionType, QueryOptions, RootFilterQuery, Types, UpdateQuery, UpdateWriteOpResult } from "mongoose";
+import { CreateOptions, DeleteResult, FlattenMaps, HydratedDocument, Model, MongooseUpdateQueryOptions, ProjectionType, QueryOptions, RootFilterQuery, Types, UpdateQuery, UpdateWriteOpResult } from "mongoose";
 export type Lean<T>=FlattenMaps<T>
 export abstract class DataBaseRepository<TRawDocument,TDocument=HydratedDocument<TRawDocument>>{
 
@@ -107,6 +107,12 @@ async findOneAndDelete({
     const res = await this.model.deleteMany(filter as any);
     // @ts-ignore
     return res?.deletedCount ?? 0;
+  }
+
+  async deleteOne(filter: RootFilterQuery<TRawDocument>): Promise<DeleteResult> {
+    const res = await this.model.deleteOne(filter as any);
+ 
+    return res 
   }
 
 

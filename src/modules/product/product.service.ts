@@ -10,12 +10,14 @@ import type { IMulterFile } from 'src/common/interfaces/multer.interface';
 import { ProductDocument } from 'src/DB/model/product.model';
 import { Types } from 'mongoose';
 import { SearchDto } from 'src/common/dtos/search.dto';
+import { UserRepository } from 'src/DB/repository/user.repository';
 
 @Injectable()
 export class ProductService {
   constructor(private readonly productRepository: ProductRepository,
     private readonly brandRepository: BrandRepository,
-    private readonly categoryRepository: CategoryRepository) {}
+    private readonly categoryRepository: CategoryRepository,
+    private readonly userRepository: UserRepository) {}
   private normalizeVariants(
     variants: any[] | undefined,
     productOriginalPrice?: number,
@@ -201,6 +203,22 @@ export class ProductService {
       throw new NotFoundException('Product not found');
     }
     return product;
+  }
+ async addToWishlist(productId: Types.ObjectId,user:UserDocument) {
+    const product=await this.productRepository.findOne({filter:{_id:productId}});
+    if(!product){
+      throw new NotFoundException('Product not found');
+    }
+    await this.userRepository.updateOne({filter:{_id:user._id},update:{$addToSet:{wishlist:product._id}}});
+    return product;
+  }
+ async removeFromWishlist(productId: Types.ObjectId,user:UserDocument) {
+    const product=await this.productRepository.findOne({filter:{_id:productId}});
+    if(!product){
+      throw new NotFoundException('Product not found');
+    }
+    await this.userRepository.updateOne({filter:{_id:user._id},update:{$pull:{wishlist:Types.ObjectId.createFromHexString(productId as unknown as string)}}});
+    return "product removed from wishlist successfully";
   }
 
 

@@ -16,6 +16,7 @@ import { IResponse } from 'src/common/interfaces/response.interfae';
 import { SearchDto } from 'src/common/dtos/search.dto';
 import { ProductDocument } from 'src/DB/model/product.model';
 import { GetAllResponse } from 'src/common/entities/search.entity';
+import { RoleEnum } from 'src/common/enums/user.enum';
 
 @UsePipes(new ValidationPipe({whitelist:true ,forbidNonWhitelisted:true}))
 @Controller('product')
@@ -82,4 +83,18 @@ export class ProductController {
     return succesResponse<ProductResponse>({data:{product},message:"Product restored successfully",status:200})
   }
   
+
+@Auth([RoleEnum.USER])
+  @Patch(":productId/add-to-wishlist")
+ async addToWishlist(@Param() params: ProductParamsDto, @User() user:UserDocument) {
+
+  const product=await this.productService.addToWishlist(params.productId,user)
+  return succesResponse<ProductResponse>({data:{product},message:"Product added to wishlist successfully",status:200})
+  }
+  @Auth([RoleEnum.USER])
+  @Patch(":productId/remove-from-wishlist")
+  async removeFromWishlist(@Param() params: ProductParamsDto, @User() user:UserDocument) {
+    await this.productService.removeFromWishlist(params.productId,user);
+    return succesResponse({data:{},message:"Product removed from wishlist successfully",status:200})
+  }
 }

@@ -1,7 +1,7 @@
 import { BadGatewayException, BadRequestException, ConflictException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { IUser } from "src/common";
 import { ConfirmEmailDto, ForgetPasswordDto, GoogleSignupDto, LoginBodyDto, ResetPasswordDto, SignupBodyDto } from "./dto/signup.dto";
-import { UserRepository } from './../DB/repository/user.repository';
+import { UserRepository } from '../../DB/repository/user.repository';
 import { compareHash, generateHash } from "src/common/utils/security/hash.security";
 import { TokenSecurity } from 'src/common/utils/security/token.security';
 import { generateNumberOtp } from 'src/common/utils/email/otp';

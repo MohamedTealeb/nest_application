@@ -22,6 +22,7 @@ import { FileValidation } from "src/common/utils/multer/validation.multer";
 import { cloudFileUpload } from "src/common/utils/multer/cloud.multer";
 import { StorageEnum } from "src/common/enums/multer.enums";
 import { succesResponse } from "src/common/utils/response";
+import { IResponse } from "src/common/interfaces/response.interfae";
 
 
 
@@ -36,10 +37,11 @@ export class UserController{
     // @UseGuards(AuthenticationGuard,AuthorizationGuard)
     @UseInterceptors(PreferredLanguageInterceptor)
 
-    @Auth([RoleEnum.USER,  RoleEnum.ADMIN],TokenEnum.ACCESS)
+    @Auth([RoleEnum.USER,  RoleEnum.ADMIN])
 @Get('profile')
-profile( @Req() req:IAuthRequest,   @User() user:any ):{message:string}{
-    return {message:'done'}
+async profile( @Req() req:IAuthRequest,   @User() user:any ):Promise<IResponse<UserDocument | null>>{
+    const profile=await this.userService.profile(user)
+    return succesResponse<UserDocument | null>({data:profile})
 }
 
 
