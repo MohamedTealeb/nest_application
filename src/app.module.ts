@@ -10,6 +10,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { BrandModule } from './modules/brand/brand.module';
 import { CategoryModule } from './modules/category/category.module';
 import { CartModule } from './modules/cart/cart.module';
+import { OrderModule } from './modules/order/order.module';
 
 @Module({
   imports: [
@@ -25,6 +26,8 @@ import { CartModule } from './modules/cart/cart.module';
     ProductModule,
     CategoryModule,
     CartModule,
+    OrderModule
+
     
     
     
