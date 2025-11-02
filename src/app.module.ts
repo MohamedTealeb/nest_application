@@ -11,6 +11,8 @@ import { BrandModule } from './modules/brand/brand.module';
 import { CategoryModule } from './modules/category/category.module';
 import { CartModule } from './modules/cart/cart.module';
 import { OrderModule } from './modules/order/order.module';
+import { CouponModule } from './modules/coupon/coupon.module';
+import { PaymentService } from './common/utils/security/payment.service';
 
 @Module({
   imports: [
@@ -26,14 +28,15 @@ import { OrderModule } from './modules/order/order.module';
     ProductModule,
     CategoryModule,
     CartModule,
-    OrderModule
+    OrderModule,
+    CouponModule
 
     
     
     
   ],
   controllers: [AppController ],
-  providers: [AppService ],
+  providers: [AppService ,PaymentService],
   
   
   

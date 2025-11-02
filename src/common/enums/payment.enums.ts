@@ -8,6 +8,14 @@ Card="Card",
 }
 
 export enum OrderStatus {
+    Pending=0,
+    Placed=1,
+    OnWay=2,
+    Cancelled=3,
+    Delivered=4,
+
+}
+export enum OrderStatusName {
     Pending="Pending",
    Placed="Placed",
    OnWay="On_Way",

@@ -95,16 +95,7 @@ cart.products.push({
   return cart;
   }
 
-  findAll() {
-    return `This action returns all cart`;
-  }
 
 
-  update(id: number, updateCartDto: UpdateCartDto) {
-    return `This action updates a #${id} cart`;
-  }
 
-  remove(id: number) {
-    return `This action removes a #${id} cart`;
-  }
 }

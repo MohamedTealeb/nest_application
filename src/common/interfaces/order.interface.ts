@@ -1,7 +1,9 @@
 import { Types } from "mongoose";
 import { IProduct } from "./product.interface";
-import { OrderStatus, PaymentType } from "../enums/payment.enums";
+import { OrderStatusName, PaymentType } from "../enums/payment.enums";
 import { IUser } from "./user.interfaces";
+import { OrderStatus } from 'src/common/enums/payment.enums';
+import { ICoupon } from "./coupon.interface";
 
 export interface IOrderProduct {
     _id?:Types.ObjectId,
@@ -31,12 +33,15 @@ export interface IOrder {
     status:OrderStatus,
     cancelReason?:string,
 
+coupon?:Types.ObjectId | ICoupon,
+intentId?:string,
 
 
 
     createdAt?:Date,
     updatedAt?:Date,
-
+  paidAt?:Date,
+  paymentIntent?:string,
     freezedAt?:Date,
     restoredAt?:Date,
     updatedBy?:Types.ObjectId | IUser,
