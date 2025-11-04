@@ -17,6 +17,7 @@ import { PaymentService } from 'src/common/utils/security/payment.service';
 import { ProductDocument } from 'src/DB/model/product.model';
 import Stripe from 'stripe';
 import type { Request as ExpressRequest } from 'express';
+import { RealtimeGateway } from '../gateway/gatway';
 
 @Injectable()
 export class OrderService {
@@ -25,6 +26,7 @@ export class OrderService {
     private readonly cartService: CartService,
     private readonly couponRepository: CouponRepository,
     private readonly paymentService: PaymentService,
+    private readonly realtimeGateway: RealtimeGateway,
   ) {}
 
 
@@ -144,10 +146,15 @@ delete (createOrderDto as any).coupon;
       coupon.usedBy.push(user._id);
       await coupon.save();
     }
+    const stockProducts:{productId:Types.ObjectId,stock:number}[]=[];
     for(const product of cart.products){
-    await this.productRepository.updateOne({filter:{_id:product.productId},update:{$inc:{__v:1,stock:-product.quantity}}});
-   
+   const updatedProduct= await this.productRepository.findOneAndUpdate({filter:{_id:product.productId},update:{$inc:{__v:1,stock:-product.quantity}}}) as ProductDocument;
+   stockProducts.push({
+    productId:updatedProduct._id,
+    stock:updatedProduct.stock,
+   })
       }
+      this.realtimeGateway.changeProductStock(stockProducts);
       await this.cartService.removeCart(user);
     
     
@@ -223,7 +230,7 @@ return session;
   }
   async refund(orderId:Types.ObjectId,user:UserDocument) {
     const order=await this.orderRepository.findOneAndUpdate({
-      filter:{_id:orderId,status:{$lt:OrderStatusName.Cancelled}},
+      filter:{_id:orderId,status:{$lt:OrderStatus.Cancelled}},
       update:{status:OrderStatus.Cancelled,updatedBy:user._id},
     }
   );

@@ -13,13 +13,18 @@ import { CartModule } from './modules/cart/cart.module';
 import { OrderModule } from './modules/order/order.module';
 import { CouponModule } from './modules/coupon/coupon.module';
 import { PaymentService } from './common/utils/security/payment.service';
+import { RealtimeModule } from './modules/gateway/gateway.module';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
+  ConfigModule.forRoot({
       envFilePath: resolve("./config/.env"),
       isGlobal: true,
       
+    }),
+    CacheModule.register({
+      isGlobal:true,
     }),
     MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/application' ,{serverSelectionTimeoutMS:5000}),
     AuthModule,
@@ -29,14 +34,15 @@ import { PaymentService } from './common/utils/security/payment.service';
     CategoryModule,
     CartModule,
     OrderModule,
-    CouponModule
+    CouponModule,
+    RealtimeModule
 
     
     
     
   ],
   controllers: [AppController ],
-  providers: [AppService ,PaymentService],
+  providers: [AppService ,PaymentService ,],
   
   
   

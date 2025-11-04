@@ -102,3 +102,5 @@ next()
 
 export type UserDocument=HydratedDocument<User>
 export const UserModel=MongooseModule.forFeature([{name:User.name,schema:userSchema}])
+
+export const connectedSocket=new Map<string,string[]>()

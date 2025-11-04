@@ -13,6 +13,7 @@ import { CartService } from '../cart/cart.service';
 import { CouponModel } from 'src/DB/model/coupon.model';
 import { CouponRepository } from 'src/DB/repository/coupon.repository';
 import { PaymentService } from 'src/common/utils/security/payment.service';
+import { RealtimeGateway } from '../gateway/gatway';
 
 @Module({
   imports: [
@@ -27,6 +28,6 @@ import { PaymentService } from 'src/common/utils/security/payment.service';
     }),
   ],
   controllers: [OrderController],
-  providers: [OrderService,CartRepository,ProductRepository,OrderRepository,CartService,CouponRepository ,PaymentService],
+  providers: [RealtimeGateway,OrderService,CartRepository,ProductRepository,OrderRepository,CartService,CouponRepository ,PaymentService],
 })
 export class OrderModule {}

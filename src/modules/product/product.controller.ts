@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFiles, UsePipes, ValidationPipe, ParseFilePipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFiles, UsePipes, ValidationPipe, ParseFilePipe, Query, Inject } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductParamsDto, UpdateProductAttachmentDto, UpdateProductDto } from './dto/update-product.dto';
@@ -17,11 +17,12 @@ import { SearchDto } from 'src/common/dtos/search.dto';
 import { ProductDocument } from 'src/DB/model/product.model';
 import { GetAllResponse } from 'src/common/entities/search.entity';
 import { RoleEnum } from 'src/common/enums/user.enum';
+import { CACHE_MANAGER ,Cache, CacheInterceptor, CacheTTL} from '@nestjs/cache-manager';
 
 @UsePipes(new ValidationPipe({whitelist:true ,forbidNonWhitelisted:true}))
 @Controller('product')
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+  constructor(private readonly productService: ProductService,@Inject(CACHE_MANAGER) private cacheManager:Cache) {}
 @UseInterceptors(FilesInterceptor('attachment', 10, localFileUpload({folder:'products',vaildation:FileValidation.image})))
 @Auth(endpoint.create)
 @Post()
@@ -83,6 +84,17 @@ export class ProductController {
     return succesResponse<ProductResponse>({data:{product},message:"Product restored successfully",status:200})
   }
   
+  @CacheTTL(10000)
+  @UseInterceptors(CacheInterceptor)
+  @Get("test")
+  async test(){
+    let user=await this.cacheManager.get("user")
+    if(!user){
+      user={message:`Done at ${ Date.now()},`,name:"mohamed"}
+      await this.cacheManager.set("user",user,25000)
+    }
+    return user;
+  }
 
 @Auth([RoleEnum.USER])
   @Patch(":productId/add-to-wishlist")
