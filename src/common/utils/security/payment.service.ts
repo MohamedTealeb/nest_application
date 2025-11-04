@@ -67,15 +67,15 @@ async confirmPaymentIntent(id:string):Promise<Stripe.PaymentIntent>{
     console.log(confirmedIntent);
     return confirmedIntent;
 }
-async refundPaymentIntent(id:string):Promise<Stripe.Refund>{
+async refundPaymentIntent(id:string){
     const intent =await this.retrievePaymentIntent(id)
     if(intent?.status!='succeeded'){
         throw new BadRequestException('fail to refund payment intent');
     }
     const refund=await this.stripe.refunds.create({
-        payment_intent:id,
+        payment_intent:intent.id,
     })
-    return refund as Stripe.Refund;
+    return refund 
 }
 
 

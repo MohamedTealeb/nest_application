@@ -24,6 +24,12 @@ export class OrderController {
   const order= await this.orderService.create(createOrderDto,user);
     return succesResponse<OrderResponse>({data:{order},status:201})
   }
+  @Auth([RoleEnum.ADMIN])
+  @Patch(":orderId/cancel")
+  refund(@Param() params: OrderParamDto, @User() user:UserDocument) {
+   return this.orderService.refund(params.orderId,user);
+     
+  }
 
   @Auth([RoleEnum.USER])
   @Post(":orderId")
@@ -54,7 +60,7 @@ async webhook(@Req() req: Request) {
     return this.orderService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Patch('update/:id')
   update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
     return this.orderService.update(+id, updateOrderDto);
   }

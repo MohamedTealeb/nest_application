@@ -12,7 +12,7 @@ import { CartService } from '../cart/cart.service';
 import { CouponRepository } from 'src/DB/repository/coupon.repository';
 import { CouponType } from 'src/common/enums/coupon.enum';
 import { Types } from 'mongoose';
-import { OrderStatus, PaymentType } from 'src/common/enums/payment.enums';
+import { OrderStatus, OrderStatusName, PaymentType } from 'src/common/enums/payment.enums';
 import { PaymentService } from 'src/common/utils/security/payment.service';
 import { ProductDocument } from 'src/DB/model/product.model';
 import Stripe from 'stripe';
@@ -64,12 +64,17 @@ export class OrderService {
       paidAt:new Date(),
       status:OrderStatus.Placed,
       paymentIntent:session.payment_intent as string,
-    }});
+      intentId:session.payment_intent as string,
+    },options:{new:true}});
     
     if(!order){
       throw new BadRequestException('order not found, order is not pending, or order has already been paid');
     }
-    await this.paymentService.confirmPaymentIntent(order.intentId)
+    const paymentIntentId = order.paymentIntent || order.intentId || session.payment_intent;
+    if(!paymentIntentId){
+      throw new BadRequestException('Payment intent ID not found');
+    }
+    await this.paymentService.confirmPaymentIntent(paymentIntentId as string)
     return order;
   }
  async create(createOrderDto: CreateOrderDto,user:UserDocument): Promise<OrderDocument> {
@@ -218,7 +223,7 @@ return session;
   }
   async refund(orderId:Types.ObjectId,user:UserDocument) {
     const order=await this.orderRepository.findOneAndUpdate({
-      filter:{_id:orderId,status:{$lte:OrderStatus.Cancelled}},
+      filter:{_id:orderId,status:{$lt:OrderStatusName.Cancelled}},
       update:{status:OrderStatus.Cancelled,updatedBy:user._id},
     }
   );
@@ -227,7 +232,27 @@ if(!order){
   throw new BadRequestException('order not found or order is not pending');
 }
 for(const product of order.products){
-  await this.productRepository.updateOne({filter:{_id:product.productId},update:{$gte:{__v:1,stock:+product.quantity}}});
+  await this.productRepository.updateOne({filter:{_id:product.productId},update:{$inc:{__v:1,stock:+product.quantity}}});
+  }
+
+  if(order.coupon){
+await this.couponRepository.updateOne({
+  filter:{_id:order.coupon},
+  update:{
+    $pull:{
+      usedBy:order.createdBy
+    }
+  }
+})
+
+
+
+  }
+  if(order.paymentType===PaymentType.Card){
+    const paymentIntentId = (order.paymentIntent as string) || (order.intentId as string);
+    if(paymentIntentId){
+      await this.paymentService.refundPaymentIntent(paymentIntentId)
+    }
   }
 
 

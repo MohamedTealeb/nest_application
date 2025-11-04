@@ -55,14 +55,16 @@ export class Order implements IOrder {
       @Prop({type:String,enum:PaymentType,default:PaymentType.Cash,required:true})
       paymentType: PaymentType;
 
-      @Prop({type:Number,enum:OrderStatus,default:OrderStatus.Pending,required:true})
-     
-
       @Prop({type:String})
       paymentIntent?: string;
-      @Prop({type:String,enum:OrderStatus,default:function(this:Order){
-          return this.paymentType===PaymentType.Card ?OrderStatus.Pending:OrderStatus.Placed;
-      },required:true})
+      @Prop({
+        type:Number,
+        enum:OrderStatus,
+        default:function(this:Order){
+          return this.paymentType===PaymentType.Card ? OrderStatus.Pending : OrderStatus.Placed;
+        },
+        required:true
+      })
       status: OrderStatus;
 
 
@@ -81,6 +83,8 @@ export class Order implements IOrder {
   restoredAt: Date;
   @Prop({type:String})
   intentId: string;
+  @Prop({type:String})
+  checkoutSessionId: string;
 
 
 }
