@@ -134,7 +134,6 @@ async login(data: LoginBodyDto): Promise<{
       throw new ConflictException('User not found');
     }
     
-    // Find the OTP record for this user and type
     const otpRecord = await this.otpRepository.findOne({
       filter: {
         createdBy: user._id,
@@ -145,8 +144,7 @@ async login(data: LoginBodyDto): Promise<{
     if (!otpRecord) {
       throw new ConflictException('No OTP found for this email');
     }
-    
-    // Check if OTP has expired
+      
     if (new Date() > otpRecord.expiredAt) {
       throw new ConflictException('OTP code has expired');
     }
@@ -156,7 +154,6 @@ async login(data: LoginBodyDto): Promise<{
       throw new ConflictException('Invalid OTP code');
     }
     
-    // Update user email confirmation
     await this.userRepository.updateOne({ 
       filter: { email }, 
       update: { 
@@ -164,7 +161,6 @@ async login(data: LoginBodyDto): Promise<{
       } 
     });
     
-    // Delete the used OTP
     await this.otpRepository.deleteMany({
       createdBy: user._id,
       type: otpEnum.ConfirmEmail
@@ -188,8 +184,7 @@ async login(data: LoginBodyDto): Promise<{
     if (user.confirmEmail) {
       throw new ConflictException('Email already confirmed');
     }
-    
-    // Delete existing OTP for this user and type
+      
     await this.otpRepository.deleteMany({
       createdBy: user._id,
       type: otpEnum.ConfirmEmail
@@ -197,12 +192,10 @@ async login(data: LoginBodyDto): Promise<{
     
     const otp = generateNumberOtp();
     
-    // Create new OTP using the repository
-    // Email will be sent automatically by the OTP model's post-save hook
     await this.otpRepository.create({
       data: {
         code: otp.toString(),
-        expiredAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
+        expiredAt: new Date(Date.now() + 10 * 60 * 1000), 
         createdBy: user._id,
         type: otpEnum.ConfirmEmail
       }
@@ -223,20 +216,17 @@ async login(data: LoginBodyDto): Promise<{
     }
 
     try {
-      // Delete existing reset password OTP for this user
-      await this.otpRepository.deleteMany({
+      await this.otpRepository.deleteMany({ 
         createdBy: user._id,
         type: otpEnum.ResetPassword
       });
 
       const otp = generateNumberOtp();
-
-      // Create new OTP using the repository
-      // Email will be sent automatically by the OTP model's post-save hook
+          
       await this.otpRepository.create({
         data: {
           code: otp.toString(),
-          expiredAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes from now
+          expiredAt: new Date(Date.now() + 15 * 60 * 1000), 
           createdBy: user._id,
           type: otpEnum.ResetPassword
         }
@@ -257,7 +247,6 @@ async login(data: LoginBodyDto): Promise<{
       throw new ConflictException('User not found');
     }
     
-    // Find the OTP record for this user and type
     const otpRecord = await this.otpRepository.findOne({
       filter: {
         createdBy: user._id,
@@ -269,7 +258,6 @@ async login(data: LoginBodyDto): Promise<{
       throw new ConflictException('No password reset request found for this email');
     }
     
-    // Check if OTP has expired
     if (new Date() > otpRecord.expiredAt) {
       throw new ConflictException('OTP code has expired');
     }
@@ -284,7 +272,6 @@ async login(data: LoginBodyDto): Promise<{
       throw new ConflictException('New password must be different from current password');
     }
     
-    // Update password and clear OTP
     await this.userRepository.updateOne({ 
       filter: { email }, 
       update: { 
@@ -293,7 +280,6 @@ async login(data: LoginBodyDto): Promise<{
       } 
     });
     
-    // Delete the used OTP
     await this.otpRepository.deleteMany({
       createdBy: user._id,
       type: otpEnum.ResetPassword
@@ -421,7 +407,6 @@ async login(data: LoginBodyDto): Promise<{
       }
     } 
   }> {
-    // Verify the refresh token
     const decoded = await this.tokenSecurity.verifyToken({
       token: refreshToken,
       secret: process.env.JWT_REFRESH_SECRET || 'default-refresh-secret'
@@ -431,7 +416,6 @@ async login(data: LoginBodyDto): Promise<{
       throw new ConflictException('Invalid refresh token');
     }
     
-    // Find the user
     const user = await this.userRepository.findOne({ 
       filter: { email: (decoded as any).user?.email || (decoded as any).sub } 
     });
@@ -440,7 +424,6 @@ async login(data: LoginBodyDto): Promise<{
       throw new ConflictException('User not found');
     }
     
-    // Generate new tokens
     const newAccessToken = await this.tokenSecurity.generateToken({
       payload: {
         sub: user._id.toString(),

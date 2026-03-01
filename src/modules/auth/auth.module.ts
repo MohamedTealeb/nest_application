@@ -16,12 +16,11 @@ import { TokenSecurity } from "src/common/utils/security/token.security";
 
 @Module({
   imports: [
-    ConfigModule, // ✅ تأكد من أن ConfigService متاح
+    ConfigModule, 
     UserModel,
     TokenModel,
     OtpModel,
 
-    // ✅ الطريقة الصحيحة لربط JWT مع ConfigService
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -33,7 +32,7 @@ import { TokenSecurity } from "src/common/utils/security/token.security";
       }),
     }),
   ],
-  controllers: [AuthenticationController], // ✅ احذف TokenSecurityController إن ما كان موجود
+  controllers: [AuthenticationController], 
   providers: [
     AuthenticationService,
     UserRepository,

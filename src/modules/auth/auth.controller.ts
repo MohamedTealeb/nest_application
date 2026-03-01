@@ -13,9 +13,8 @@ import { IUser } from "src/common";
 
 @Controller("auth")
 export class AuthenticationController {
-  constructor(private readonly authenticationService: AuthenticationService) {}
+  constructor(private readonly authService: AuthenticationService) {}
 
-  // @UsePipes(new ValidationPipe({ stopAtFirstError: true, whitelist: true, forbidNonWhitelisted: true }))
   @Post("signup")
   async signup(@Body() body: SignupBodyDto): Promise<{ message: string }> {
     console.log({ body });
